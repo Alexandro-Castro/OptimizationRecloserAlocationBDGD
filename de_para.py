@@ -1,0 +1,46 @@
+fases_nos = {
+    'ABCN': '.1.2.3.4',
+    'ABC':  '.1.2.3',
+    'ABN':  '.1.2.4',
+    'BCN':  '.2.3.4',
+    'CAN':  '.3.1.4',
+    'AB':   '.1.2',
+    'BC':   '.2.3',
+    'CA':   '.3.1',
+    'AN':   '.1.4',
+    'BN':   '.2.4',
+    'CN':   '.3.4',
+    'A':    '.1',
+    'B':    '.2',
+    'C':    '.3',
+}
+
+fases_num = {
+    'ABCN': 3,
+    'ABC':  3,
+    'ABN':  2,
+    'BCN':  2,
+    'CAN':  2,
+    'AB':   2,
+    'BC':   2,
+    'CA':   2,
+    'AN':   1,
+    'BN':   1,
+    'CN':   1,
+    'A':    1,
+    'B':    1,
+    'C':    1,
+}
+
+tipo_chave = {
+    34: 'Seccionadora unipolar de subestação',
+    32: 'RL',
+    27: '3OP',
+    33: 'Seccionadora tripolar de subestação',
+    22: 'CH',
+    29: 'DJ',
+    23: 'Chave fusível abertura com carga com aterramento',
+    36: 'Seccionalizador monofásico',
+    49: 'Chave Tipo Tandem',
+    47: 'Seccionadora com lâmina de terra',
+}
