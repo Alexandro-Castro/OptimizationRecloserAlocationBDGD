@@ -5,12 +5,8 @@ from itertools import combinations
 
 import numpy as np
 import pandas as pd
-from pathlib import Path
-import sys
 
-sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
-
-from src.recloser_opt.objective import matriz_penalidade_redundancia, score_grupo
+from .objective import matriz_penalidade_redundancia, score_grupo
 
 
 def fronteira_pareto(df: pd.DataFrame, objetivos: list[str]) -> pd.DataFrame:
@@ -234,4 +230,3 @@ def otimizar_religadores_ga(
         "pares_redundantes": pd.DataFrame(pares_redundantes),
     }
     return solucao, info
-

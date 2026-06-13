@@ -2,11 +2,8 @@ from __future__ import annotations
 
 import pandas as pd
 from pathlib import Path
-import sys
 
-sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
-
-from src.recloser_opt.io_bdgd import resolver_saida  # noqa: E402
+from .io_bdgd import resolver_saida
 
 def salvar_resultados(
     alimentador: str,
@@ -66,4 +63,3 @@ def imprimir_solucao(solucao: pd.DataFrame, info: dict[str, object]) -> None:
     print(f"  Objetivo: {float(info['objetivo']):.6f}")
     print(f"  Beneficio total: {float(info['beneficio_total']):.6f}")
     print(f"  Penalidade total: {float(info['penalidade_total']):.6f}")
-

@@ -2,16 +2,13 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-import sys
 
-sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
-
-from src.recloser_opt.candidates import preparar_candidatos
-from src.recloser_opt.downstream import calcular_metricas_nos, marcar_tronco_automatico
-from src.recloser_opt.graph_builder import filtrar_componente_da_raiz, montar_arestas_rede, orientar_rede_radial
-from src.recloser_opt.io_bdgd import agrupa_cargas, ler_alm
-from src.recloser_opt.metaheuristics import otimizar_religadores_ga
-from src.recloser_opt.reports import imprimir_resumo_conectividade, imprimir_solucao, salvar_resultados
+from .candidates import preparar_candidatos
+from .downstream import calcular_metricas_nos, marcar_tronco_automatico
+from .graph_builder import filtrar_componente_da_raiz, montar_arestas_rede, orientar_rede_radial
+from .io_bdgd import agrupa_cargas, ler_alm
+from .metaheuristics import otimizar_religadores_ga
+from .reports import imprimir_resumo_conectividade, imprimir_solucao, salvar_resultados
 
 
 def otimizar_alimentador(

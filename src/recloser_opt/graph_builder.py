@@ -2,15 +2,31 @@ from __future__ import annotations
 
 from collections import defaultdict, deque
 from pathlib import Path
-import sys
-
-sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
 import networkx as nx
 import numpy as np
 import pandas as pd
 
-from src.recloser_opt.io_bdgd import ler_alm, ler_chaves, ler_linhas, ler_reguladores, normaliza_pacs, to_num
+from .io_bdgd import (
+    ler_alm,
+    ler_chaves,
+    ler_linhas,
+    ler_reguladores,
+    normaliza_pacs,
+    resolver_saida_redes_conectadas,
+    to_num,
+)
+
+
+def remover_arestas_invalidas(arestas: pd.DataFrame) -> pd.DataFrame:
+    arestas = normaliza_pacs(arestas, ["PAC_1", "PAC_2"])
+    arestas = arestas.dropna(subset=["PAC_1", "PAC_2"]).copy()
+
+    pac_1 = arestas["PAC_1"].astype(str).str.strip()
+    pac_2 = arestas["PAC_2"].astype(str).str.strip()
+    mask_valida = (pac_1 != "") & (pac_2 != "") & (pac_1 != pac_2)
+
+    return arestas[mask_valida].copy()
 
 
 def montar_arestas_rede(
@@ -24,9 +40,7 @@ def montar_arestas_rede(
     reguladores = ler_reguladores(ctmt, input_dir=input_dir)
 
     arestas = pd.concat([linhas, chaves, reguladores], ignore_index=True)
-    arestas = normaliza_pacs(arestas, ["PAC_1", "PAC_2"])
-    arestas = arestas.dropna(subset=["PAC_1", "PAC_2"]).copy()
-    arestas = arestas[arestas["PAC_1"] != arestas["PAC_2"]].copy()
+    arestas = remover_arestas_invalidas(arestas)
 
     arestas["COMP"] = to_num(arestas["COMP"])
     arestas["NUM_FASES"] = pd.to_numeric(arestas["NUM_FASES"], errors="coerce").fillna(0).astype(int)
@@ -91,9 +105,47 @@ def filtrar_componente_da_raiz(
         "nos_descartados": G.number_of_nodes() - G_conn.number_of_nodes(),
         "arestas_descartadas": G.number_of_edges() - G_conn.number_of_edges(),
         "eh_arvore": nx.is_tree(G_conn),
-        "qtd_ciclos_estimado": G_conn.number_of_edges() - G_conn.number_of_nodes() + 1,
+        "ciclos_estimados": G_conn.number_of_edges() - G_conn.number_of_nodes() + 1,
     }
+    resumo["qtd_ciclos_estimado"] = resumo["ciclos_estimados"]
     return arestas_conn, G_conn, resumo
+
+
+def salvar_arestas_conectadas(
+    alimentador: str,
+    arestas_conectadas: pd.DataFrame,
+    output_dir: str | Path | None = None,
+) -> Path:
+    pasta_saida = resolver_saida_redes_conectadas(output_dir)
+    pasta_saida.mkdir(parents=True, exist_ok=True)
+    caminho_saida = pasta_saida / f"{alimentador}_arestas_conectadas.csv"
+    arestas_conectadas.to_csv(caminho_saida, sep=";", index=False)
+    return caminho_saida
+
+
+def montar_rede_conectada(
+    alimentador: str,
+    input_dir: str | Path | None = None,
+    output_dir: str | Path | None = None,
+    salvar_csv: bool = True,
+) -> dict[str, object]:
+    arestas, no_raiz, cod_al, ctmt = montar_arestas_rede(alimentador, input_dir=input_dir)
+    arestas_conn, G_conn, diagnostico = filtrar_componente_da_raiz(arestas, no_raiz)
+
+    caminho_saida = None
+    if salvar_csv:
+        caminho_saida = salvar_arestas_conectadas(alimentador, arestas_conn, output_dir=output_dir)
+
+    return {
+        "alimentador": str(alimentador),
+        "pac_ini": no_raiz,
+        "nome": cod_al,
+        "cod_id": ctmt,
+        "arestas_conectadas": arestas_conn,
+        "grafo": G_conn,
+        "diagnostico": diagnostico,
+        "caminho_saida": caminho_saida,
+    }
 
 
 def orientar_rede_radial(G: nx.Graph, no_raiz: str) -> nx.DiGraph:
@@ -155,4 +207,3 @@ def distancia_topologica(
                 fila.append((vizinho, dist + 1))
 
     return limite + 1
-

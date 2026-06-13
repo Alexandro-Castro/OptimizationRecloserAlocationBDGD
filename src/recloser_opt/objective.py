@@ -5,12 +5,7 @@ from itertools import combinations
 import numpy as np
 import pandas as pd
 
-from pathlib import Path
-import sys
-
-sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
-
-from src.recloser_opt.graph_builder import distancia_topologica
+from .graph_builder import distancia_topologica
 
 
 def eh_ancestral(tin_a: int, tout_a: int, tin_b: int) -> bool:
@@ -85,4 +80,3 @@ def score_grupo(df_sol: pd.DataFrame, grafo: dict[str, set[str]]) -> float:
     score_base = (score_individual * balanceamento).sum()
     penalizacao = penalizacao_proximidade(df_sol, grafo)
     return float(score_base - 0.5 * penalizacao)
-

@@ -10,6 +10,7 @@ import pandas as pd
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_INPUT_DIR = PROJECT_ROOT / "dados_entrada"
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "saida_otimizacao"
+DEFAULT_CONNECTED_NETWORK_DIR = PROJECT_ROOT / "outputs" / "redes_conectadas"
 
 FASES_NUM = {
     "ABCN": 3,
@@ -48,6 +49,16 @@ def resolver_entrada(input_dir: str | Path | None = None) -> Path:
 
 def resolver_saida(output_dir: str | Path | None = None) -> Path:
     return Path(output_dir) if output_dir is not None else DEFAULT_OUTPUT_DIR
+
+
+def resolver_saida_redes_conectadas(output_dir: str | Path | None = None) -> Path:
+    if output_dir is None:
+        return DEFAULT_CONNECTED_NETWORK_DIR
+
+    pasta = Path(output_dir)
+    if pasta.name == "redes_conectadas":
+        return pasta
+    return pasta / "redes_conectadas"
 
 
 def caminho_csv(nome_arquivo: str | Path, input_dir: str | Path | None = None) -> Path:
@@ -311,4 +322,3 @@ def agrupa_cargas(ctmt: str, input_dir: str | Path | None = None) -> pd.DataFram
             FIC=("FIC", "sum"),
         )
     )
-

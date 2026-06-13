@@ -3,12 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from pathlib import Path
-import sys
-
-sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
-
-from src.recloser_opt.io_bdgd import normaliza_id, norm01
+from .io_bdgd import norm01
 
 
 def preparar_candidatos(
@@ -59,4 +54,3 @@ def preparar_candidatos(
     cand = cand.sort_values("BENEFICIO", ascending=False).reset_index(drop=True)
     cand["ID_CAND"] = np.arange(len(cand))
     return cand
-

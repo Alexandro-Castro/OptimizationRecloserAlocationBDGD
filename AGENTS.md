@@ -28,7 +28,7 @@ O objetivo é montar a rede elétrica conectada a partir do PAC_INI, calcular m�
 - Sempre que alterar uma função central, crie ou atualize testes.
 - Não implemente custo de religador na função objetivo nesta etapa.
 - A otimização deve escolher exatamente N religadores, não “até N”, salvo instrução contrária.
-- não faça com interface de linha de comando para rodar os scripts
+- não utilize interface cli nem semelhantes. todos os parâmetros devem ser declarados no próprio script
 
 ## Modelo elétrico inicial
 
