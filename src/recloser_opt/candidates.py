@@ -6,6 +6,44 @@ import pandas as pd
 from .io_bdgd import norm01
 
 
+def marcar_tronco_por_maior_ucs_jus(df_nos: pd.DataFrame, no_raiz: str) -> pd.DataFrame:
+    df_nos = df_nos.copy()
+
+    if "PAC" not in df_nos.columns or "UCs_JUS" not in df_nos.columns:
+        df_nos["TRONCO_AUTO"] = 0
+        return df_nos
+
+    if "FIM_RAMAL" in df_nos.columns:
+        folhas = df_nos[df_nos["FIM_RAMAL"] == 1].copy()
+    elif "PAI" in df_nos.columns:
+        pais = set(df_nos["PAI"].dropna().astype(str))
+        folhas = df_nos[~df_nos["PAC"].astype(str).isin(pais)].copy()
+    else:
+        folhas = df_nos.copy()
+
+    if folhas.empty:
+        df_nos["TRONCO_AUTO"] = 0
+        return df_nos
+
+    folha_principal = folhas.sort_values("UCs_JUS", ascending=False)["PAC"].iloc[0]
+    caminho = {str(folha_principal)}
+
+    if "PAI" in df_nos.columns:
+        pai_por_pac = df_nos.set_index("PAC")["PAI"].to_dict()
+        no_atual = folha_principal
+
+        while no_atual != no_raiz:
+            pai = pai_por_pac.get(no_atual)
+            if pd.isna(pai) or pai is None:
+                break
+
+            caminho.add(str(pai))
+            no_atual = pai
+
+    df_nos["TRONCO_AUTO"] = df_nos["PAC"].astype(str).isin(caminho).astype(int)
+    return df_nos
+
+
 def preparar_candidatos(
     df_nos: pd.DataFrame,
     no_raiz: str,
@@ -14,16 +52,11 @@ def preparar_candidatos(
     compactar_candidatos: bool = True,
     pesos_beneficio: dict[str, float] | None = None,
 ) -> pd.DataFrame:
-    if pesos_beneficio is None:
-        pesos_beneficio = {
-            "DIC": 0.45,
-            "FIC": 0.25,
-            "UC": 0.20,
-            "TRONCO": 0.10,
-            "DIST": 0.00,
-        }
-
     cand = df_nos.copy()
+
+    if "TRONCO_AUTO" not in cand.columns:
+        cand = marcar_tronco_por_maior_ucs_jus(cand, no_raiz)
+
     cand = cand[cand["PAC"] != no_raiz].copy()
     cand = cand[cand["UCs_JUS"] >= min_ucs_jus].copy()
     cand = cand[cand["DIST_RAIZ"] >= min_dist_raiz].copy()
@@ -43,11 +76,10 @@ def preparar_candidatos(
     cand["DIST_RAIZ_N"] = norm01(cand["DIST_RAIZ"])
 
     cand["BENEFICIO"] = (
-        pesos_beneficio["DIC"] * cand["DIC_JUS_N"]
-        + pesos_beneficio["FIC"] * cand["FIC_JUS_N"]
-        + pesos_beneficio["UC"] * cand["UCs_JUS_N"]
-        + pesos_beneficio["TRONCO"] * cand["TRONCO_AUTO"]
-        + pesos_beneficio["DIST"] * cand["DIST_RAIZ_N"]
+        0.45 * cand["DIC_JUS_N"]
+        + 0.25 * cand["FIC_JUS_N"]
+        + 0.20 * cand["UCs_JUS_N"]
+        + 0.10 * cand["TRONCO_AUTO"]
     )
 
     cand = cand[cand["BENEFICIO"] > 0].copy()

@@ -4,3 +4,6 @@ tests
 *__pycache__
 *.pyc
 .pytest_cache
+dados_entrada
+saida_otimizacao
+outputs

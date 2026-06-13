@@ -3,7 +3,7 @@ from __future__ import annotations
 import networkx as nx
 import pandas as pd
 
-from .io_bdgd import normaliza_id, norm01
+from .io_bdgd import normaliza_id
 
 
 def calcular_euler_tree(T: nx.DiGraph, no_raiz: str) -> tuple[dict[str, int], dict[str, int], list[str]]:
@@ -109,13 +109,7 @@ def marcar_tronco_automatico(T: nx.DiGraph, no_raiz: str, df_nos: pd.DataFrame) 
         df_nos["TRONCO_AUTO"] = 0
         return df_nos
 
-    folhas["PESO_FOLHA"] = (
-        norm01(folhas["UCs_JUS"]) * 0.40
-        + norm01(folhas["DIC_JUS"]) * 0.40
-        + norm01(folhas["FIC_JUS"]) * 0.20
-    )
-
-    folha_principal = folhas.sort_values("PESO_FOLHA", ascending=False)["PAC"].iloc[0]
+    folha_principal = folhas.sort_values("UCs_JUS", ascending=False)["PAC"].iloc[0]
     caminho_tronco = nx.shortest_path(T, source=no_raiz, target=folha_principal)
     df_nos["TRONCO_AUTO"] = df_nos["PAC"].isin(caminho_tronco).astype(int)
     return df_nos

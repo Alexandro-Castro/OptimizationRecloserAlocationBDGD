@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import random
-from itertools import combinations
 
 import numpy as np
 import pandas as pd
 
-from .objective import matriz_penalidade_redundancia, score_grupo
+from .objective import evaluate_solution, matriz_penalidade_redundancia, score_grupo
 
 
 def fronteira_pareto(df: pd.DataFrame, objetivos: list[str]) -> pd.DataFrame:
@@ -99,9 +98,7 @@ def otimizar_religadores_ga(
         )
 
     rng = np.random.default_rng(seed)
-    beneficio = cand["BENEFICIO"].to_numpy(dtype=float)
-    P, HARD = matriz_penalidade_redundancia(cand, d0=d0, min_dist_serie=min_dist_serie)
-    hard_penalty = 1e6
+    P, _ = matriz_penalidade_redundancia(cand, d0=d0, min_dist_serie=min_dist_serie)
 
     def criar_individuo() -> np.ndarray:
         return np.sort(rng.choice(len(cand), size=n_religadores, replace=False))
@@ -121,16 +118,8 @@ def otimizar_religadores_ga(
         return np.sort(np.array(ind, dtype=int))
 
     def fitness(ind: np.ndarray) -> float:
-        ind = np.array(ind, dtype=int)
-        valor = beneficio[ind].sum()
-        penalidade = 0.0
-
-        for a, b in combinations(ind, 2):
-            penalidade += P[a, b]
-            if HARD[a, b]:
-                penalidade += hard_penalty
-
-        return float(valor - alpha_penalidade * penalidade)
+        resultado = evaluate_solution(ind, cand, P, alpha_penalidade)
+        return float(resultado["objetivo_total"])
 
     def torneio(pop: list[np.ndarray], fits: np.ndarray, k: int = 3) -> np.ndarray:
         idx = rng.choice(len(pop), size=k, replace=False)
@@ -201,29 +190,13 @@ def otimizar_religadores_ga(
     solucao = cand.iloc[melhor_ind].copy().reset_index(drop=True)
     solucao["SELECIONADO"] = 1
 
-    penalidade_total = 0.0
-    pares_redundantes = []
-    for a, b in combinations(melhor_ind, 2):
-        penalidade_total += P[a, b]
-
-        if P[a, b] > 0:
-            pares_redundantes.append(
-                {
-                    "PAC_i": cand.iloc[a]["PAC"],
-                    "PAC_j": cand.iloc[b]["PAC"],
-                    "PENALIDADE_PAR": P[a, b],
-                    "HARD": bool(HARD[a, b]),
-                    "DIST_i": cand.iloc[a]["DIST_RAIZ"],
-                    "DIST_j": cand.iloc[b]["DIST_RAIZ"],
-                    "UCs_JUS_i": cand.iloc[a]["UCs_JUS"],
-                    "UCs_JUS_j": cand.iloc[b]["UCs_JUS"],
-                }
-            )
+    avaliacao = evaluate_solution(melhor_ind, cand, P, alpha_penalidade)
+    pares_redundantes = avaliacao["pares_penalizados"]
 
     info = {
-        "objetivo": melhor_fit,
-        "beneficio_total": float(solucao["BENEFICIO"].sum()),
-        "penalidade_total": float(penalidade_total),
+        "objetivo": float(avaliacao["objetivo_total"]),
+        "beneficio_total": float(avaliacao["beneficio_total"]),
+        "penalidade_total": float(avaliacao["penalidade_total"]),
         "n_candidatos": len(cand),
         "n_religadores": n_religadores,
         "historico": pd.DataFrame(historico),

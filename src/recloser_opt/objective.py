@@ -27,7 +27,7 @@ def matriz_penalidade_redundancia(
     tin = cand["TIN"].to_numpy()
     tout = cand["TOUT"].to_numpy()
     dist = cand["DIST_RAIZ"].to_numpy()
-    W = cand["UCs_JUS"].clip(lower=1.0).to_numpy(dtype=float)
+    ucs_jus = cand["UCs_JUS"].clip(lower=0.0).to_numpy(dtype=float)
 
     for i in range(n):
         for j in range(i + 1, n):
@@ -37,24 +37,107 @@ def matriz_penalidade_redundancia(
             if not i_anc_j and not j_anc_i:
                 continue
 
-            if i_anc_j:
-                up, down = i, j
-            else:
-                up, down = j, i
-
-            jaccard = W[down] / max(W[up], 1e-9)
-            distancia_serie = abs(dist[i] - dist[j])
+            max_ucs = max(ucs_jus[i], ucs_jus[j], 1e-9)
+            sobreposicao = min(ucs_jus[i], ucs_jus[j]) / max_ucs
+            distancia_serie = abs(float(dist[i]) - float(dist[j]))
             proximidade = np.exp(-distancia_serie / max(d0, 1e-9))
-            penalidade = peso_sobreposicao * jaccard + peso_proximidade * proximidade
+            penalidade = peso_sobreposicao * sobreposicao + peso_proximidade * proximidade
 
             P[i, j] = penalidade
             P[j, i] = penalidade
 
-            if distancia_serie < min_dist_serie and jaccard >= jaccard_hard:
+            if distancia_serie < min_dist_serie and sobreposicao >= jaccard_hard:
                 HARD[i, j] = True
                 HARD[j, i] = True
 
     return P, HARD
+
+
+def _candidate_ids_to_positions(
+    selected_candidate_ids: list[int] | tuple[int, ...] | np.ndarray,
+    candidates_df: pd.DataFrame,
+) -> list[int]:
+    selected = [int(candidate_id) for candidate_id in selected_candidate_ids]
+
+    if len(selected) != len(set(selected)):
+        raise ValueError("selected_candidate_ids nao pode conter candidatos repetidos.")
+
+    if "ID_CAND" not in candidates_df.columns:
+        max_pos = len(candidates_df) - 1
+        invalidos = [idx for idx in selected if idx < 0 or idx > max_pos]
+        if invalidos:
+            raise ValueError(f"Indices de candidatos invalidos: {invalidos}")
+        return selected
+
+    pos_por_id = {
+        int(candidate_id): pos
+        for pos, candidate_id in enumerate(candidates_df["ID_CAND"].astype(int).tolist())
+    }
+    invalidos = [candidate_id for candidate_id in selected if candidate_id not in pos_por_id]
+    if invalidos:
+        raise ValueError(f"ID_CAND inexistente em candidates_df: {invalidos}")
+
+    return [pos_por_id[candidate_id] for candidate_id in selected]
+
+
+def _beneficios_por_candidato(candidates_df: pd.DataFrame) -> pd.Series:
+    colunas = ["DIC_JUS_N", "FIC_JUS_N", "UCs_JUS_N", "TRONCO_AUTO"]
+    faltantes = [col for col in colunas if col not in candidates_df.columns]
+    if faltantes and "BENEFICIO" in candidates_df.columns:
+        return pd.to_numeric(candidates_df["BENEFICIO"], errors="coerce").fillna(0.0)
+
+    if faltantes:
+        raise ValueError(f"Colunas ausentes para calcular BENEFICIO: {faltantes}")
+
+    return (
+        0.45 * pd.to_numeric(candidates_df["DIC_JUS_N"], errors="coerce").fillna(0.0)
+        + 0.25 * pd.to_numeric(candidates_df["FIC_JUS_N"], errors="coerce").fillna(0.0)
+        + 0.20 * pd.to_numeric(candidates_df["UCs_JUS_N"], errors="coerce").fillna(0.0)
+        + 0.10 * pd.to_numeric(candidates_df["TRONCO_AUTO"], errors="coerce").fillna(0.0)
+    )
+
+
+def evaluate_solution(
+    selected_candidate_ids: list[int] | tuple[int, ...] | np.ndarray,
+    candidates_df: pd.DataFrame,
+    penalty_matrix: np.ndarray,
+    alpha: float,
+) -> dict[str, object]:
+    positions = _candidate_ids_to_positions(selected_candidate_ids, candidates_df)
+    beneficios = _beneficios_por_candidato(candidates_df).to_numpy(dtype=float)
+
+    if penalty_matrix.shape[0] != len(candidates_df) or penalty_matrix.shape[1] != len(candidates_df):
+        raise ValueError("penalty_matrix deve ter dimensoes iguais ao numero de candidatos.")
+
+    beneficio_total = float(beneficios[positions].sum())
+    penalidade_total = 0.0
+    pares_penalizados = []
+
+    for pos_i, pos_j in combinations(positions, 2):
+        penalidade = float(penalty_matrix[pos_i, pos_j])
+        if penalidade <= 0:
+            continue
+
+        penalidade_total += penalidade
+        cand_i = candidates_df.iloc[pos_i]
+        cand_j = candidates_df.iloc[pos_j]
+        pares_penalizados.append(
+            {
+                "ID_CAND_i": int(cand_i["ID_CAND"]) if "ID_CAND" in candidates_df.columns else int(pos_i),
+                "ID_CAND_j": int(cand_j["ID_CAND"]) if "ID_CAND" in candidates_df.columns else int(pos_j),
+                "PAC_i": cand_i.get("PAC"),
+                "PAC_j": cand_j.get("PAC"),
+                "PENALIDADE_PAR": penalidade,
+            }
+        )
+
+    objetivo_total = beneficio_total - float(alpha) * penalidade_total
+    return {
+        "objetivo_total": float(objetivo_total),
+        "beneficio_total": beneficio_total,
+        "penalidade_total": float(penalidade_total),
+        "pares_penalizados": pares_penalizados,
+    }
 
 
 def penalizacao_proximidade(df_sol: pd.DataFrame, grafo: dict[str, set[str]]) -> float:
