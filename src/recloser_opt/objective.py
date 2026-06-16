@@ -90,10 +90,8 @@ def _beneficios_por_candidato(candidates_df: pd.DataFrame) -> pd.Series:
         raise ValueError(f"Colunas ausentes para calcular BENEFICIO: {faltantes}")
 
     return (
-        0.45 * pd.to_numeric(candidates_df["DIC_JUS_N"], errors="coerce").fillna(0.0)
-        + 0.25 * pd.to_numeric(candidates_df["FIC_JUS_N"], errors="coerce").fillna(0.0)
-        + 0.20 * pd.to_numeric(candidates_df["UCs_JUS_N"], errors="coerce").fillna(0.0)
-        + 0.10 * pd.to_numeric(candidates_df["TRONCO_AUTO"], errors="coerce").fillna(0.0)
+        pd.to_numeric(candidates_df["DIC_JUS_N"], errors="coerce").fillna(0.0)
+        / pd.to_numeric(candidates_df["UCs_JUS_N"], errors="coerce").fillna(0.0)
     )
 
 

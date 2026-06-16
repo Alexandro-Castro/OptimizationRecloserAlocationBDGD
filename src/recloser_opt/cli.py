@@ -8,7 +8,7 @@ from .downstream import calcular_metricas_nos, marcar_tronco_automatico
 from .graph_builder import filtrar_componente_da_raiz, montar_arestas_rede, orientar_rede_radial
 from .io_bdgd import agrupa_cargas, ler_alm
 from .metaheuristics import otimizar_religadores_ga
-from .reports import imprimir_resumo_conectividade, imprimir_solucao, salvar_resultados
+from .reports import imprimir_resumo_conectividade, imprimir_solucao, salvar_resultados, salvar_solucao_ga
 
 
 def otimizar_alimentador(
@@ -86,6 +86,12 @@ def otimizar_alimentador(
             info,
             output_dir=output_dir,
         )
+        salvar_solucao_ga(
+            alimentador,
+            solucao,
+            info["historico"],
+            output_dir=output_dir,
+        )
         print(f"\nArquivos salvos em: {pasta_saida}")
 
     return {
@@ -109,9 +115,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--n-religadores", type=int, default=3)
     parser.add_argument("--input-dir", type=Path, default=None)
     parser.add_argument("--output-dir", type=Path, default=None)
-    parser.add_argument("--geracoes", type=int, default=250)
-    parser.add_argument("--pop-size", type=int, default=120)
-    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--generations", "--geracoes", dest="generations", type=int, default=250)
+    parser.add_argument("--population-size", "--pop-size", dest="population_size", type=int, default=120)
+    parser.add_argument("--mutation-rate", dest="mutation_rate", type=float, default=0.25)
+    parser.add_argument("--elite-size", dest="elite_size", type=int, default=8)
+    parser.add_argument("--random-seed", "--seed", dest="random_seed", type=int, default=42)
+    parser.add_argument("--alpha-penalty", dest="alpha_penalty", type=float, default=1.0)
+    parser.add_argument("--d0", type=float, default=1000.0)
     parser.add_argument("--sem-salvar", action="store_true")
     return parser
 
@@ -124,9 +134,13 @@ def main(argv: list[str] | None = None) -> None:
         input_dir=args.input_dir,
         output_dir=args.output_dir,
         salvar_csv=not args.sem_salvar,
-        geracoes=args.geracoes,
-        pop_size=args.pop_size,
-        seed=args.seed,
+        geracoes=args.generations,
+        pop_size=args.population_size,
+        taxa_mutacao=args.mutation_rate,
+        elite=args.elite_size,
+        seed=args.random_seed,
+        alpha_penalidade=args.alpha_penalty,
+        d0=args.d0,
     )
 
 

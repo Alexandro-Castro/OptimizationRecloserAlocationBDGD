@@ -3,7 +3,7 @@ from __future__ import annotations
 import pandas as pd
 from pathlib import Path
 
-from .io_bdgd import resolver_saida
+from .io_bdgd import resolver_saida, resolver_saida_solucoes
 
 def salvar_resultados(
     alimentador: str,
@@ -30,6 +30,20 @@ def salvar_resultados(
     if isinstance(pares_redundantes, pd.DataFrame):
         pares_redundantes.to_csv(pasta_saida / f"{alimentador}_pares_redundantes.csv", sep=";", index=False)
 
+    return pasta_saida
+
+
+def salvar_solucao_ga(
+    alimentador: str,
+    solucao: pd.DataFrame,
+    historico: pd.DataFrame,
+    output_dir: str | Path | None = None,
+) -> Path:
+    pasta_saida = resolver_saida_solucoes(output_dir)
+    pasta_saida.mkdir(parents=True, exist_ok=True)
+
+    solucao.to_csv(pasta_saida / f"{alimentador}_solucao_ga.csv", sep=";", index=False)
+    historico.to_csv(pasta_saida / f"{alimentador}_historico_ga.csv", sep=";", index=False)
     return pasta_saida
 
 

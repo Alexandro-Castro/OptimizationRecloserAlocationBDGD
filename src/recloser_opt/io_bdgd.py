@@ -11,6 +11,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_INPUT_DIR = PROJECT_ROOT / "dados_entrada"
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "saida_otimizacao"
 DEFAULT_CONNECTED_NETWORK_DIR = PROJECT_ROOT / "outputs" / "redes_conectadas"
+DEFAULT_SOLUTIONS_DIR = PROJECT_ROOT / "outputs" / "solucoes"
 
 FASES_NUM = {
     "ABCN": 3,
@@ -59,6 +60,16 @@ def resolver_saida_redes_conectadas(output_dir: str | Path | None = None) -> Pat
     if pasta.name == "redes_conectadas":
         return pasta
     return pasta / "redes_conectadas"
+
+
+def resolver_saida_solucoes(output_dir: str | Path | None = None) -> Path:
+    if output_dir is None:
+        return DEFAULT_SOLUTIONS_DIR
+
+    pasta = Path(output_dir)
+    if pasta.name == "solucoes":
+        return pasta
+    return pasta / "solucoes"
 
 
 def caminho_csv(nome_arquivo: str | Path, input_dir: str | Path | None = None) -> Path:

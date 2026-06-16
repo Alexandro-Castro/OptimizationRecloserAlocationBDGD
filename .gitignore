@@ -1,9 +1,11 @@
 *.csv
 .venv
-tests
+__pycache__/
+*.py[cod]
 *__pycache__
 *.pyc
 .pytest_cache
 dados_entrada
 saida_otimizacao
 outputs
+artigos
