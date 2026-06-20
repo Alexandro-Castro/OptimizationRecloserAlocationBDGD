@@ -10,7 +10,7 @@ Projeto para montar redes radiais a partir de CSVs da BDGD/ANEEL, calcular metri
 - `src/recloser_opt/candidates.py`: preparacao dos pontos candidatos.
 - `src/recloser_opt/objective.py`: penalidade de redundancia topologica.
 - `src/recloser_opt/metaheuristics.py`: algoritmo genetico e funcoes legadas de Pareto/annealing.
-- `src/recloser_opt/reports.py`: gravacao dos CSVs de saida.
+- `src/recloser_opt/reports.py`: gravacao dos CSVs de saida e curva de convergencia.
 - `src/recloser_opt/cli.py`: orquestracao do pipeline.
 - `scripts/run_feeder.py`: script simples para rodar um alimentador.
 
@@ -51,7 +51,7 @@ python .\scripts\run_feeder.py 056001 --n-religadores 3 --pop-size 20 --geracoes
 ## Saidas
 
 O pipeline gera, por alimentador, sempre dentro de `saida_otimizacao/`.
-Arquivos numéricos são gravados com vírgula como separador decimal.
+Arquivos numericos sao gravados com virgula como separador decimal.
 
 - `<alimentador>_arestas_conectadas.csv`
 - `<alimentador>_nos_metricas.csv`
@@ -62,3 +62,4 @@ Arquivos numéricos são gravados com vírgula como separador decimal.
 - `redes_conectadas/<alimentador>_arestas_conectadas.csv`
 - `solucoes/<alimentador>_solucao_ga.csv`
 - `solucoes/<alimentador>_historico_ga.csv`
+- `solucoes/<alimentador>_curva_convergencia.svg`

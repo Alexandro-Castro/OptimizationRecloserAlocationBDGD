@@ -10,8 +10,8 @@ from src.recloser_opt.cli import otimizar_alimentador  # noqa: E402
 
 def main() -> None:
     otimizar_alimentador(
-        alimentador="069012",
-        n_religadores=3,
+        alimentador="032011",
+        n_religadores=5,
         geracoes=200,
         pop_size=120,
         seed=41,
