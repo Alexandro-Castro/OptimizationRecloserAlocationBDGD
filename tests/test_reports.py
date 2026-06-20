@@ -5,7 +5,8 @@ import pandas as pd
 from recloser_opt.reports import salvar_solucao_ga
 
 
-def test_salva_solucao_ga_em_outputs_solucoes(tmp_path) -> None:
+def test_salva_solucao_ga_em_saida_otimizacao_solucoes(tmp_path) -> None:
+    output_root = tmp_path / "saida_otimizacao"
     solucao = pd.DataFrame(
         [
             {
@@ -31,9 +32,21 @@ def test_salva_solucao_ga_em_outputs_solucoes(tmp_path) -> None:
         ]
     )
 
-    pasta = salvar_solucao_ga("0001", solucao, historico, output_dir=tmp_path)
+    pasta = salvar_solucao_ga("0001", solucao, historico, output_dir=output_root)
 
-    assert pasta == tmp_path / "solucoes"
+    assert pasta == output_root / "solucoes"
     assert (pasta / "0001_solucao_ga.csv").exists()
     assert (pasta / "0001_historico_ga.csv").exists()
 
+
+def test_csvs_gerados_usam_virgula_decimal(tmp_path) -> None:
+    output_root = tmp_path / "saida_otimizacao"
+    solucao = pd.DataFrame([{"PAC": "A", "BENEFICIO": 1.25}])
+    historico = pd.DataFrame([{"geracao": 0, "melhor_objetivo": 2.5}])
+
+    pasta = salvar_solucao_ga("0001", solucao, historico, output_dir=output_root)
+
+    conteudo_solucao = (pasta / "0001_solucao_ga.csv").read_text(encoding="utf-8")
+    conteudo_historico = (pasta / "0001_historico_ga.csv").read_text(encoding="utf-8")
+    assert "1,25" in conteudo_solucao
+    assert "2,5" in conteudo_historico

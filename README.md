@@ -50,7 +50,8 @@ python .\scripts\run_feeder.py 056001 --n-religadores 3 --pop-size 20 --geracoes
 
 ## Saidas
 
-O pipeline gera, por alimentador:
+O pipeline gera, por alimentador, sempre dentro de `saida_otimizacao/`.
+Arquivos numéricos são gravados com vírgula como separador decimal.
 
 - `<alimentador>_arestas_conectadas.csv`
 - `<alimentador>_nos_metricas.csv`
@@ -58,4 +59,6 @@ O pipeline gera, por alimentador:
 - `<alimentador>_solucao_religadores.csv`
 - `<alimentador>_historico_ga.csv`
 - `<alimentador>_pares_redundantes.csv`
-
+- `redes_conectadas/<alimentador>_arestas_conectadas.csv`
+- `solucoes/<alimentador>_solucao_ga.csv`
+- `solucoes/<alimentador>_historico_ga.csv`

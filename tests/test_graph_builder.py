@@ -44,7 +44,7 @@ def _write_csv(path: Path, content: str) -> None:
 
 def test_monta_rede_conectada_com_csvs_ficticios(tmp_path: Path) -> None:
     input_dir = tmp_path / "dados_entrada"
-    output_dir = tmp_path / "outputs"
+    output_dir = tmp_path / "saida_otimizacao"
     input_dir.mkdir()
 
     _write_csv(

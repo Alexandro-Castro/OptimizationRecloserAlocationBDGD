@@ -13,6 +13,8 @@ from .io_bdgd import (
     ler_linhas,
     ler_reguladores,
     normaliza_pacs,
+    CSV_DECIMAL_SEPARATOR,
+    CSV_SEPARATOR,
     resolver_saida_redes_conectadas,
     to_num,
 )
@@ -119,7 +121,12 @@ def salvar_arestas_conectadas(
     pasta_saida = resolver_saida_redes_conectadas(output_dir)
     pasta_saida.mkdir(parents=True, exist_ok=True)
     caminho_saida = pasta_saida / f"{alimentador}_arestas_conectadas.csv"
-    arestas_conectadas.to_csv(caminho_saida, sep=";", index=False)
+    arestas_conectadas.to_csv(
+        caminho_saida,
+        sep=CSV_SEPARATOR,
+        decimal=CSV_DECIMAL_SEPARATOR,
+        index=False,
+    )
     return caminho_saida
 
 

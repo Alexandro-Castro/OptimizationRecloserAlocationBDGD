@@ -82,7 +82,7 @@ def preparar_candidatos(
         + 0.10 * cand["TRONCO_AUTO"]
     )
 
-    cand = cand[cand["BENEFICIO"] > 0].copy()
+    cand = cand[cand["TRONCO_AUTO"] == 0].copy()
     cand = cand.sort_values("BENEFICIO", ascending=False).reset_index(drop=True)
     cand["ID_CAND"] = np.arange(len(cand))
     return cand

@@ -10,8 +10,10 @@ import pandas as pd
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_INPUT_DIR = PROJECT_ROOT / "dados_entrada"
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "saida_otimizacao"
-DEFAULT_CONNECTED_NETWORK_DIR = PROJECT_ROOT / "outputs" / "redes_conectadas"
-DEFAULT_SOLUTIONS_DIR = PROJECT_ROOT / "outputs" / "solucoes"
+DEFAULT_CONNECTED_NETWORK_DIR = DEFAULT_OUTPUT_DIR / "redes_conectadas"
+DEFAULT_SOLUTIONS_DIR = DEFAULT_OUTPUT_DIR / "solucoes"
+CSV_SEPARATOR = ";"
+CSV_DECIMAL_SEPARATOR = ","
 
 FASES_NUM = {
     "ABCN": 3,

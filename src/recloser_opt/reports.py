@@ -3,7 +3,16 @@ from __future__ import annotations
 import pandas as pd
 from pathlib import Path
 
-from .io_bdgd import resolver_saida, resolver_saida_solucoes
+from .io_bdgd import CSV_DECIMAL_SEPARATOR, CSV_SEPARATOR, resolver_saida, resolver_saida_solucoes
+
+
+def salvar_csv_saida(df: pd.DataFrame, caminho: Path) -> None:
+    df.to_csv(
+        caminho,
+        sep=CSV_SEPARATOR,
+        decimal=CSV_DECIMAL_SEPARATOR,
+        index=False,
+    )
 
 def salvar_resultados(
     alimentador: str,
@@ -17,18 +26,18 @@ def salvar_resultados(
     pasta_saida = resolver_saida(output_dir)
     pasta_saida.mkdir(parents=True, exist_ok=True)
 
-    arestas_conectadas.to_csv(pasta_saida / f"{alimentador}_arestas_conectadas.csv", sep=";", index=False)
-    nos_metricas.to_csv(pasta_saida / f"{alimentador}_nos_metricas.csv", sep=";", index=False)
-    candidatos.to_csv(pasta_saida / f"{alimentador}_candidatos.csv", sep=";", index=False)
-    solucao.to_csv(pasta_saida / f"{alimentador}_solucao_religadores.csv", sep=";", index=False)
+    salvar_csv_saida(arestas_conectadas, pasta_saida / f"{alimentador}_arestas_conectadas.csv")
+    salvar_csv_saida(nos_metricas, pasta_saida / f"{alimentador}_nos_metricas.csv")
+    salvar_csv_saida(candidatos, pasta_saida / f"{alimentador}_candidatos.csv")
+    salvar_csv_saida(solucao, pasta_saida / f"{alimentador}_solucao_religadores.csv")
 
     historico = info.get("historico")
     if isinstance(historico, pd.DataFrame):
-        historico.to_csv(pasta_saida / f"{alimentador}_historico_ga.csv", sep=";", index=False)
+        salvar_csv_saida(historico, pasta_saida / f"{alimentador}_historico_ga.csv")
 
     pares_redundantes = info.get("pares_redundantes")
     if isinstance(pares_redundantes, pd.DataFrame):
-        pares_redundantes.to_csv(pasta_saida / f"{alimentador}_pares_redundantes.csv", sep=";", index=False)
+        salvar_csv_saida(pares_redundantes, pasta_saida / f"{alimentador}_pares_redundantes.csv")
 
     return pasta_saida
 
@@ -42,8 +51,8 @@ def salvar_solucao_ga(
     pasta_saida = resolver_saida_solucoes(output_dir)
     pasta_saida.mkdir(parents=True, exist_ok=True)
 
-    solucao.to_csv(pasta_saida / f"{alimentador}_solucao_ga.csv", sep=";", index=False)
-    historico.to_csv(pasta_saida / f"{alimentador}_historico_ga.csv", sep=";", index=False)
+    salvar_csv_saida(solucao, pasta_saida / f"{alimentador}_solucao_ga.csv")
+    salvar_csv_saida(historico, pasta_saida / f"{alimentador}_historico_ga.csv")
     return pasta_saida
 
 
