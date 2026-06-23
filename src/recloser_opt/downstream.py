@@ -12,19 +12,49 @@ def calcular_euler_tree(T: nx.DiGraph, no_raiz: str) -> tuple[dict[str, int], di
     ordem: list[str] = []
     tempo = 0
 
-    def dfs(u: str) -> None:
-        nonlocal tempo
+    pilha: list[tuple[str, bool]] = [(no_raiz, False)]
+    while pilha:
+        u, saida = pilha.pop()
+
+        if saida:
+            tout[u] = tempo
+            continue
+
+        if u in tin:
+            continue
+
         tin[u] = tempo
         tempo += 1
         ordem.append(u)
 
-        for v in T.successors(u):
-            dfs(v)
+        pilha.append((u, True))
+        for v in reversed(list(T.successors(u))):
+            pilha.append((v, False))
 
-        tout[u] = tempo
-
-    dfs(no_raiz)
     return tin, tout, ordem
+
+
+def iterar_pos_ordem_arvore(T: nx.DiGraph, no_raiz: str) -> list[str]:
+    ordem: list[str] = []
+    visitados: set[str] = set()
+    pilha: list[tuple[str, bool]] = [(no_raiz, False)]
+
+    while pilha:
+        u, expandido = pilha.pop()
+
+        if expandido:
+            ordem.append(u)
+            continue
+
+        if u in visitados:
+            continue
+
+        visitados.add(u)
+        pilha.append((u, True))
+        for v in reversed(list(T.successors(u))):
+            pilha.append((v, False))
+
+    return ordem
 
 
 def calcular_metricas_nos(T: nx.DiGraph, no_raiz: str, cargas: pd.DataFrame) -> pd.DataFrame:
@@ -47,7 +77,7 @@ def calcular_metricas_nos(T: nx.DiGraph, no_raiz: str, cargas: pd.DataFrame) -> 
             "GRAU_PAIS": int(T.in_degree(no)),
         }
 
-    for no in nx.dfs_postorder_nodes(T, source=no_raiz):
+    for no in iterar_pos_ordem_arvore(T, no_raiz):
         ucs_a_jus = float(dados[no]["UCs_A"])
         ucs_b_jus = float(dados[no]["UCs_B"])
         dic_jus = float(dados[no]["DIC"])

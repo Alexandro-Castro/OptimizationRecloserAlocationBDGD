@@ -23,3 +23,30 @@ def test_calcula_metricas_jusante_em_arvore_radial() -> None:
     assert df.loc["A", "UCs_JUS"] == 8
     assert df.loc["R", "UCs_JUS"] == 8
     assert df.loc["B", "DIST_RAIZ"] == 15.0
+
+
+def test_calcula_metricas_em_rede_profunda_sem_recursao() -> None:
+    T = nx.DiGraph()
+    total_trechos = 1500
+
+    for i in range(total_trechos):
+        T.add_edge(f"N{i}", f"N{i + 1}", COMP=1.0, NUM_FASES=3, TIPO="CP")
+
+    cargas = pd.DataFrame(
+        [
+            {
+                "PAC": f"N{total_trechos}",
+                "UCs_A": 0,
+                "UCs_B": 1,
+                "DIC": 2.0,
+                "FIC": 3.0,
+            }
+        ]
+    )
+
+    df = calcular_metricas_nos(T, "N0", cargas).set_index("PAC")
+
+    assert len(df) == total_trechos + 1
+    assert df.loc["N0", "UCs_JUS"] == 1
+    assert df.loc["N0", "DIC_JUS"] == 2.0
+    assert df.loc[f"N{total_trechos}", "DIST_RAIZ"] == float(total_trechos)
